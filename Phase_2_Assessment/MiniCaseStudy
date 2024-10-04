@@ -1,1 +1,108 @@
+1.Account Management window
+                        <Window x:Class="BankProject.AccountManagamentWindow"
+                                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                                xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                                xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                                xmlns:local="clr-namespace:BankProject"
+                                mc:Ignorable="d"
+                                Title="Account Management" Height="450" Width="800">
+                            <Canvas>
+                                <Button x:Name="btnAdd" Content="Add" HorizontalAlignment="Left" Margin="450,274,0,0" VerticalAlignment="Top" Height="40" Width="75" FontSize="20"/>
+                                <Button x:Name="btnEdit" Content="Edit" HorizontalAlignment="Left" Margin="215,274,0,0" VerticalAlignment="Top" Height="40" Width="75" FontSize="20"/>
+                                <DataGrid x:Name="grdAccount" d:ItemsSource="{d:SampleData ItemCount=5}" AutoGenerateColumns="False" Canvas.Left="260" Canvas.Top="88">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Acc No"/>
+                                        <DataGridTextColumn Header="Name"/>
+                                        <DataGridTextColumn Header="Acc Type"/>
+                                        <DataGridTextColumn Header="Address"/>
+                                        <DataGridTextColumn Header="Phone No"/>
+                        
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <TextBlock HorizontalAlignment="Left" Margin="310,19,0,0" TextWrapping="Wrap" Text="ABC BANK" VerticalAlignment="Top" Height="40" Width="185" FontSize="30" />
+                        
+                            </Canvas>
+                        </Window>
 
+2.Add Account Window
+                      <Window x:Class="BankProject.AddAccountWindow"
+                              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                              xmlns:local="clr-namespace:BankProject"
+                              mc:Ignorable="d"
+                              Title="Add Account" Height="450" Width="800">
+                          <Canvas>
+                              <TextBlock HorizontalAlignment="Left" Margin="251,19,0,0" TextWrapping="Wrap" Text="CREATE ACCOUNT" VerticalAlignment="Top" FontSize="30"/>
+                              <TextBlock Canvas.Left="185" TextWrapping="Wrap" Text="Account Number" Canvas.Top="77" HorizontalAlignment="Center" VerticalAlignment="Top" Height="27" Width="154" FontSize="20"/>
+                              <TextBox x:Name="txtAccountNumber" Canvas.Left="380" TextWrapping="Wrap" Canvas.Top="86" Width="120" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                              <TextBlock Canvas.Left="182" TextWrapping="Wrap" Text="Name" Canvas.Top="117" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="20"/>
+                              <TextBox x:Name="txtName" Canvas.Left="380" TextWrapping="Wrap" Canvas.Top="124" Width="120" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                              <TextBlock Canvas.Left="181" TextWrapping="Wrap" Text="Account Type" Canvas.Top="157" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="20"/>
+                              <TextBlock Canvas.Left="180" TextWrapping="Wrap" Text="Email" Canvas.Top="194" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="20"/>
+                              <TextBox x:Name="txtEmail" Canvas.Left="380" TextWrapping="Wrap" Canvas.Top="201" Width="120" HorizontalAlignment="Center" VerticalAlignment="Top" />
+                              <TextBlock Canvas.Left="181" TextWrapping="Wrap" Text="Phone Number" Canvas.Top="227" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="20"/>
+                              <TextBox x:Name="txtPhoneNumber" Canvas.Left="380" TextWrapping="Wrap" Canvas.Top="236" Width="120" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                              <TextBlock Canvas.Left="180" TextWrapping="Wrap" Text="Address" Canvas.Top="262" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="20" />
+                              <TextBox AcceptsReturn="True" x:Name="txtAddress" Canvas.Left="380" TextWrapping="Wrap" Canvas.Top="271" Width="260" HorizontalAlignment="Left" VerticalAlignment="Top" Height="23"/>
+                              <TextBlock Canvas.Left="180" TextWrapping="Wrap" Text="Interest Rate" Canvas.Top="299" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                              <ComboBox x:Name="cmbInterestRate" Canvas.Left="380" Canvas.Top="302" Width="120" HorizontalAlignment="Center" VerticalAlignment="Top">
+                                  <ComboBoxItem Content="1%" />
+                                  <ComboBoxItem Content="2%" />
+                                  <ComboBoxItem Content="3%" />
+                                  <ComboBoxItem Content="4%" />
+                              </ComboBox>
+                              <Button x:Name="BtnCreateAccount" Content="Create Account" Canvas.Left="280" Canvas.Top="384" HorizontalAlignment="Center" VerticalAlignment="Top" Height="45" Width="155"/>
+                              <CheckBox x:Name="chkActive" Content="Active" Canvas.Left="380" Canvas.Top="341" HorizontalAlignment="Left" VerticalAlignment="Top" Height="18" Width="98"/>
+                              <TextBlock Canvas.Left="180" TextWrapping="Wrap" Text="Account Active" Canvas.Top="333" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                              <RadioButton Content="SAVINGS" Canvas.Left="378" Canvas.Top="164" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                              <RadioButton Content="CURRENT" Canvas.Left="455" Canvas.Top="164" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                      
+                      
+                          </Canvas>
+                      </Window>
+
+
+
+3.Edit Account Window
+                  <Window x:Class="BankProject.EditAccountWindow"
+                          xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                          xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                          xmlns:local="clr-namespace:BankProject"
+                          mc:Ignorable="d"
+                          Title="EditAccountWindow" Height="450" Width="800">
+                      <Canvas>
+                          <TextBlock HorizontalAlignment="Left" Margin="251,19,0,0" TextWrapping="Wrap" Text="UPDATE ACCOUNT" VerticalAlignment="Top" FontSize="30"/>
+                          <TextBlock Canvas.Left="185" TextWrapping="Wrap" Text="Account Number" Canvas.Top="77" HorizontalAlignment="Center" VerticalAlignment="Top" Height="27" Width="154" FontSize="20"/>
+                          <TextBox x:Name="txtAccountNumber" Canvas.Left="380" TextWrapping="Wrap" Canvas.Top="86" Width="120" HorizontalAlignment="Center" VerticalAlignment="Top" IsEnabled="False"/>
+                          <TextBlock Canvas.Left="182" TextWrapping="Wrap" Text="Name" Canvas.Top="117" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="20"/>
+                          <TextBox x:Name="txtName" Canvas.Left="380" TextWrapping="Wrap" Canvas.Top="124" Width="120" HorizontalAlignment="Center" VerticalAlignment="Top" IsEnabled="False"/>
+                          <TextBlock Canvas.Left="181" TextWrapping="Wrap" Text="Account Type" Canvas.Top="157" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="20"/>
+                          <TextBlock Canvas.Left="180" TextWrapping="Wrap" Text="Email" Canvas.Top="194" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="20"/>
+                          <TextBox x:Name="txtEmail" Canvas.Left="380" TextWrapping="Wrap" Canvas.Top="201" Width="120" HorizontalAlignment="Center" VerticalAlignment="Top" TextChanged="TextBox_TextChanged" IsEnabled="False"/>
+                          <TextBlock Canvas.Left="176" TextWrapping="Wrap" Text="Phone Number" Canvas.Top="225" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="20"/>
+                          <TextBox x:Name="txtPhoneNumber" Canvas.Left="380" TextWrapping="Wrap" Canvas.Top="234" Width="120" HorizontalAlignment="Left" VerticalAlignment="Center" IsEnabled="False"/>
+                          <TextBlock Canvas.Left="180" TextWrapping="Wrap" Text="Address" Canvas.Top="262" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="20"/>
+                          <TextBox AcceptsReturn="True" x:Name="txtAddress" Canvas.Left="380" TextWrapping="Wrap" Canvas.Top="266" Width="330" HorizontalAlignment="Center" VerticalAlignment="Top" Height="28"/>
+                          <ComboBox x:Name="cmbAccountType" Canvas.Left="380" Canvas.Top="164" Width="120" HorizontalAlignment="Center" VerticalAlignment="Top" IsEnabled="False">
+                              <ComboBoxItem Content="Savings Acc" />
+                              <ComboBoxItem Content="Current Acc" />
+                  
+                          </ComboBox>
+                          <TextBlock Canvas.Left="180" TextWrapping="Wrap" Text="Interest Rate" Canvas.Top="299" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                          <ComboBox x:Name="cmbInterestRate" Canvas.Left="380" Canvas.Top="302" Width="120" HorizontalAlignment="Center" VerticalAlignment="Top" IsEnabled="False">
+                              <ComboBoxItem Content="1%" />
+                              <ComboBoxItem Content="2%" />
+                              <ComboBoxItem Content="3%" />
+                              <ComboBoxItem Content="4%" />
+                          </ComboBox>
+                          <Button x:Name="btnUpdateAccount" Content="Update Account" Canvas.Left="280" Canvas.Top="384" HorizontalAlignment="Center" VerticalAlignment="Top" Height="45" Width="155"/>
+                          <CheckBox x:Name="chkActive" Content="Active" Canvas.Left="380" Canvas.Top="341" HorizontalAlignment="Left" VerticalAlignment="Top" Height="18" Width="98" IsEnabled="False"/>
+                          <TextBlock Canvas.Left="180" TextWrapping="Wrap" Text="Account Active" Canvas.Top="333" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                  
+                      </Canvas>
+                  </Window>
