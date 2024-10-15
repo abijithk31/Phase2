@@ -1,1 +1,344 @@
+>>>>>>>>>>>  EFProductionMetricsRepo
 
+                                          using System;
+                                          using System.Collections.Generic;
+                                          using System.Data.Entity;
+                                          using System.Linq;
+                                          
+                                          namespace SMADProject
+                                          {
+                                              public class EFRepo : IRepo
+                                              {
+                                                  private readonly SMADDbContext _context;
+                                          
+                                                  public EFRepo(SMADDbContext context)
+                                                  {
+                                                      _context = context;
+                                                  }
+                                          
+                                                  public IEnumerable<ProductionMetric> GetProductionMetrics(DateTime startDate, DateTime endDate, int? lineId)
+                                                  {
+                                                      var query = _context.ProductionMetrics.AsQueryable();
+                                          
+                                                      if (lineId.HasValue)
+                                                      {
+                                                          query = query.Where(pm => pm.LineID == lineId.Value);
+                                                      }
+                                          
+                                                      return query.Where(pm => pm.MetricDate >= startDate && pm.MetricDate <= endDate)
+                                                                  .ToList();
+                                                  }
+                                              }
+                                          }
+
+>>>>>>>>>>    IProductionMetricsRepo   <<<<<<<<<<<<
+
+                      using SMADProject;
+                      using System;
+                      using System.Collections.Generic;
+                      
+                      public interface IRepo
+                      {
+                          IEnumerable<ProductionMetric> GetProductionMetrics(DateTime startDate, DateTime endDate, int? lineId);
+                      }
+
+
+>>>>>>>>>>>>>>>    RelayCommand <<<<<<<<<<
+
+                    using System;
+                    using System.Windows.Input;
+                    
+                    namespace SMADProject
+                    {
+                        public class RelayCommand : ICommand
+                        {
+                            private readonly Action<object> _execute;
+                            private readonly Predicate<object> _canExecute;
+                    
+                            public event EventHandler CanExecuteChanged;
+                    
+                            public RelayCommand(Action<object> execute, Predicate<object> canExecute = null)
+                            {
+                                _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+                                _canExecute = canExecute;
+                            }
+                    
+                            public bool CanExecute(object parameter)
+                            {
+                                return _canExecute == null || _canExecute(parameter);
+                            }
+                    
+                            public void Execute(object parameter)
+                            {
+                                _execute(parameter);
+                            }
+                    
+                            public void RaiseCanExecuteChanged()
+                            {
+                                CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+                            }
+                        }
+                    }
+                    
+>>>>>>>>>>  Report analytics page xaml   <<<<<<<<<<<
+
+                  <Window x:Class="SMADProject.ReportingAnalyticsPage"
+                          xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                          xmlns:local="clr-namespace:SMADProject"
+                          Title="Reporting and Analytics"
+                          Height="600"
+                          Width="800">
+                  
+                      <Grid Margin="10">
+                  
+                          <!-- Title -->
+                          <TextBlock Text="Production Reports" 
+                                     FontSize="24" 
+                                     HorizontalAlignment="Center" 
+                                     Margin="0,10,0,525" Width="240" />
+                  
+                          <!-- Filters Section -->
+                          <StackPanel Margin="0,55,0,20" HorizontalAlignment="Center" Width="590">
+                              <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                  
+                                  <!-- Production Line Filter -->
+                                  <TextBlock Text="Production Line:" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                  <ComboBox ItemsSource="{Binding ProductionLines}" 
+                                            SelectedItem="{Binding SelectedProductionLine, Mode=TwoWay}" 
+                                            DisplayMemberPath="LineName" 
+                                            SelectedValuePath="LineID" 
+                                            Width="150" Margin="0,0,20,0" />
+                  
+                                  <!-- Date Range Filter -->
+                                  <TextBlock Text="Date Range:" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                  <DatePicker SelectedDate="{Binding StartDate}" Width="120" />
+                                  <TextBlock Text="to" VerticalAlignment="Center" Margin="5,0,5,0" />
+                                  <DatePicker SelectedDate="{Binding EndDate}" Width="120" />
+                              </StackPanel>
+                              <Button Content="Generate Report" 
+                                      Width="150" 
+                                      Height="30"
+                                      Command="{Binding GenerateReportCommand}" />
+                          </StackPanel>
+                  
+                          <!-- DataGrid for displaying report -->
+                          <DataGrid ItemsSource="{Binding ReportData}" 
+                                    AutoGenerateColumns="True" 
+                                    Height="300" 
+                                    Margin="-10,122,10,142" />
+                  
+                          <!-- Export Buttons Section -->
+                          <StackPanel Orientation="Horizontal" 
+                                      HorizontalAlignment="Left" 
+                                      Margin="260,170,0,-160">
+                              <Button Content="Export to PDF" 
+                                      Width="120" 
+                                      Height="30" 
+                                      Margin="10,0" 
+                                      Click="OnExportToPdfClick" />
+                              <Button Content="Export to Excel" 
+                                      Width="120" 
+                                      Height="30"
+                                      Margin="10,0" 
+                                      Click="OnExportToExcelClick" />
+                          </StackPanel>
+                  
+                      </Grid>
+                  </Window>
+
+
+
+ >>>>>  code behind <<<<<<<<<<<
+
+                                        using System;
+                                        using System.Collections.ObjectModel;
+                                        using System.Linq;
+                                        using System.Windows;
+                                        using System.Windows.Controls;
+                                        
+                                        namespace SMADProject
+                                        {
+                                            public partial class ReportingAnalyticsPage : Window
+                                            {
+                                                private readonly ReportingAnalyticsViewModel _viewModel;
+                                        
+                                                public ReportingAnalyticsPage()
+                                                {
+                                                    InitializeComponent();
+                                                    _viewModel = new ReportingAnalyticsViewModel(new EFRepo(new SMADDbContext()));
+                                                    DataContext = _viewModel; // Set the DataContext to enable binding
+                                                    LoadProductionLines(); // Load production lines when the page is initialized
+                                                }
+                                        
+                                                private void LoadProductionLines()
+                                                {
+                                                    try
+                                                    {
+                                                        using (var context = new SMADDbContext())
+                                                        {
+                                                            var productionLines = context.ProductionLines.ToList();
+                                                            _viewModel.ProductionLines = new ObservableCollection<ProductionLine>(productionLines);
+                                                        }
+                                                    }
+                                                    catch (Exception ex)
+                                                    {
+                                                        MessageBox.Show($"Error loading production lines: {ex.Message}");
+                                                    }
+                                                }
+                                        
+                                                private void OnGenerateReportClick(object sender, RoutedEventArgs e)
+                                                {
+                                                    try
+                                                    {
+                                                        _viewModel.GenerateReportCommand.Execute(null); // Execute the command to generate the report
+                                                    }
+                                                    catch (Exception ex)
+                                                    {
+                                                        MessageBox.Show($"Error generating report: {ex.Message}");
+                                                    }
+                                                }
+                                        
+                                                private void OnExportToPdfClick(object sender, RoutedEventArgs e)
+                                                {
+                                                    // Implement PDF export logic here
+                                                    MessageBox.Show("Export to PDF functionality not implemented yet.");
+                                                }
+                                        
+                                                private void OnExportToExcelClick(object sender, RoutedEventArgs e)
+                                                {
+                                                    // Implement Excel export logic here
+                                                    MessageBox.Show("Export to Excel functionality not implemented yet.");
+                                                }
+                                            }
+                                        }
+
+
+>>>>>>>>>>>>>>>>>>   viewmodel <<<<<<<<<<<<<<<
+
+                                  using System;
+                                  using System.Collections.ObjectModel;
+                                  using System.Windows;
+                                  using System.Windows.Input;
+                                  
+                                  namespace SMADProject
+                                  {
+                                      public class ReportingAnalyticsViewModel : ViewModelBase
+                                      {
+                                          private readonly IRepo _repo;
+                                          private ObservableCollection<ProductionMetric> _reportData;
+                                          private DateTime _startDate;
+                                          private DateTime _endDate;
+                                          private int? _selectedLineId;
+                                  
+                                          public ObservableCollection<ProductionLine> ProductionLines { get; set; } // New property
+                                  
+                                          public ObservableCollection<ProductionMetric> ReportData
+                                          {
+                                              get => _reportData;
+                                              set
+                                              {
+                                                  _reportData = value;
+                                                  OnPropertyChanged(); // Notify the UI of changes
+                                              }
+                                          }
+                                  
+                                          public DateTime StartDate
+                                          {
+                                              get => _startDate;
+                                              set
+                                              {
+                                                  _startDate = value;
+                                                  OnPropertyChanged(); // Notify UI of changes
+                                              }
+                                          }
+                                  
+                                          public DateTime EndDate
+                                          {
+                                              get => _endDate;
+                                              set
+                                              {
+                                                  _endDate = value;
+                                                  OnPropertyChanged(); // Notify UI of changes
+                                              }
+                                          }
+                                  
+                                          public int? SelectedLineId
+                                          {
+                                              get => _selectedLineId;
+                                              set
+                                              {
+                                                  _selectedLineId = value;
+                                                  OnPropertyChanged(); // Notify UI of changes
+                                              }
+                                          }
+                                  
+                                          public ProductionLine SelectedProductionLine { get; set; } // New property
+                                  
+                                          public ICommand GenerateReportCommand { get; }
+                                  
+                                          public ReportingAnalyticsViewModel(IRepo repo)
+                                          {
+                                              _repo = repo;
+                                              GenerateReportCommand = new RelayCommand(OnGenerateReport);
+                                              ReportData = new ObservableCollection<ProductionMetric>();
+                                              ProductionLines = new ObservableCollection<ProductionLine>(); // Initialize
+                                          }
+                                  
+                                          private void OnGenerateReport(object parameter) // Accept object parameter
+                                          {
+                                              try
+                                              {
+                                                  SelectedLineId = SelectedProductionLine?.LineID; // Set selected line ID
+                                                  var metrics = _repo.GetProductionMetrics(StartDate, EndDate, SelectedLineId);
+                                                  ReportData.Clear();
+                                                  foreach (var metric in metrics)
+                                                  {
+                                                      ReportData.Add(metric);
+                                                  }
+                                              }
+                                              catch (Exception ex)
+                                              {
+                                                  MessageBox.Show($"Error generating report: {ex.Message}");
+                                              }
+                                          }
+                                      }
+                                  }
+
+>>>>>>>>>>>>   db context <<<<<<<<<<<<<<<
+                            using System.Data.Entity;
+                            
+                            namespace SMADProject
+                            {
+                                public class SMADDbContext : DbContext
+                                {
+                                    public SMADDbContext() : base("name=SmadDbEntities") // This should match the connection string name
+                                    {
+                                    }
+                            
+                                    public DbSet<ProductionLine> ProductionLines { get; set; }
+                                    public DbSet<ProductionMetric> ProductionMetrics { get; set; }
+                                    public DbSet<Alert> Alerts { get; set; }
+                                    public DbSet<ProductionTrend> ProductionTrends { get; set; }
+                                    public DbSet<Setting> Settings { get; set; }
+                                    public DbSet<User> Users { get; set; }
+                                }
+                            }
+
+
+>>>>>>>>>>>>>>>>>>>>   viewmodel Base <<<<<<<<<<<<<<<<
+
+                            using System.ComponentModel;
+                            
+                            namespace SMADProject
+                            {
+                                public class ViewModelBase : INotifyPropertyChanged
+                                {
+                                    public event PropertyChangedEventHandler PropertyChanged;
+                            
+                                    protected void OnPropertyChanged(string propertyName = null)
+                                    {
+                                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+                                    }
+                                }
+                            }
