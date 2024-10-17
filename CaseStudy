@@ -217,93 +217,136 @@
 >>>>>>>>>>>>>>>>>>   viewmodel <<<<<<<<<<<<<<<
 
                                   using System;
-                                  using System.Collections.ObjectModel;
-                                  using System.Windows;
-                                  using System.Windows.Input;
-                                  
-                                  namespace SMADProject
-                                  {
-                                      public class ReportingAnalyticsViewModel : ViewModelBase
-                                      {
-                                          private readonly IRepo _repo;
-                                          private ObservableCollection<ProductionMetric> _reportData;
-                                          private DateTime _startDate;
-                                          private DateTime _endDate;
-                                          private int? _selectedLineId;
-                                  
-                                          public ObservableCollection<ProductionLine> ProductionLines { get; set; } // New property
-                                  
-                                          public ObservableCollection<ProductionMetric> ReportData
-                                          {
-                                              get => _reportData;
-                                              set
-                                              {
-                                                  _reportData = value;
-                                                  OnPropertyChanged(); // Notify the UI of changes
-                                              }
-                                          }
-                                  
-                                          public DateTime StartDate
-                                          {
-                                              get => _startDate;
-                                              set
-                                              {
-                                                  _startDate = value;
-                                                  OnPropertyChanged(); // Notify UI of changes
-                                              }
-                                          }
-                                  
-                                          public DateTime EndDate
-                                          {
-                                              get => _endDate;
-                                              set
-                                              {
-                                                  _endDate = value;
-                                                  OnPropertyChanged(); // Notify UI of changes
-                                              }
-                                          }
-                                  
-                                          public int? SelectedLineId
-                                          {
-                                              get => _selectedLineId;
-                                              set
-                                              {
-                                                  _selectedLineId = value;
-                                                  OnPropertyChanged(); // Notify UI of changes
-                                              }
-                                          }
-                                  
-                                          public ProductionLine SelectedProductionLine { get; set; } // New property
-                                  
-                                          public ICommand GenerateReportCommand { get; }
-                                  
-                                          public ReportingAnalyticsViewModel(IRepo repo)
-                                          {
-                                              _repo = repo;
-                                              GenerateReportCommand = new RelayCommand(OnGenerateReport);
-                                              ReportData = new ObservableCollection<ProductionMetric>();
-                                              ProductionLines = new ObservableCollection<ProductionLine>(); // Initialize
-                                          }
-                                  
-                                          private void OnGenerateReport(object parameter) // Accept object parameter
-                                          {
-                                              try
-                                              {
-                                                  SelectedLineId = SelectedProductionLine?.LineID; // Set selected line ID
-                                                  var metrics = _repo.GetProductionMetrics(StartDate, EndDate, SelectedLineId);
-                                                  ReportData.Clear();
-                                                  foreach (var metric in metrics)
-                                                  {
-                                                      ReportData.Add(metric);
-                                                  }
-                                              }
-                                              catch (Exception ex)
-                                              {
-                                                  MessageBox.Show($"Error generating report: {ex.Message}");
-                                              }
-                                          }
-                                      }
-                                  }
+                    using System.Collections.ObjectModel;
+                    using System.IO;
+                    using System.Windows;
+                    using System.Windows.Input;
+                    using System.Windows.Markup;
+                    using Microsoft.Win32;
+                    using Newtonsoft.Json;
+                    
+                    namespace SMADProject
+                    {
+                        public class ReportingAnalyticsViewModel : ViewModelBase
+                        {
+                            private readonly IRepo _repo;
+                            private ObservableCollection<ProductionMetric> _reportData;
+                            private DateTime _startDate;
+                            private DateTime _endDate;
+                            private int? _selectedLineId;
+                    
+                            public ObservableCollection<ProductionLine> ProductionLines { get; set; }
+                    
+                            public ObservableCollection<ProductionMetric> ReportData
+                            {
+                                get => _reportData;
+                                set
+                                {
+                                    _reportData = value;
+                                    OnPropertyChanged(); // Notify the UI of changes
+                                }
+                            }
+                    
+                            public DateTime StartDate
+                            {
+                                get => _startDate;
+                                set
+                                {
+                                    _startDate = value;
+                                    OnPropertyChanged(); // Notify UI of changes
+                                }
+                            }
+                    
+                            public DateTime EndDate
+                            {
+                                get => _endDate;
+                                set
+                                {
+                                    _endDate = value;
+                                    OnPropertyChanged(); // Notify UI of changes
+                                }
+                            }
+                    
+                            public int? SelectedLineId
+                            {
+                                get => _selectedLineId;
+                                set
+                                {
+                                    _selectedLineId = value;
+                                    OnPropertyChanged(); // Notify UI of changes
+                                }
+                            }
+                    
+                            public ProductionLine SelectedProductionLine { get; set; }
+                    
+                            public ICommand GenerateReportCommand { get; }
+                            public ICommand ExportToJsonCommand { get; }
+                       
+                    
+                            public ReportingAnalyticsViewModel(IRepo repo)
+                            {
+                                _repo = repo;
+                                GenerateReportCommand = new RelayCommand(OnGenerateReport);
+                                ExportToJsonCommand = new RelayCommand(OnExportToJson); // Export to JSON command
+                               
+                                ReportData = new ObservableCollection<ProductionMetric>();
+                                ProductionLines = new ObservableCollection<ProductionLine>();
+                            }
+                    
+                            private void OnGenerateReport(object parameter)
+                            {
+                                try
+                                {
+                                    SelectedLineId = SelectedProductionLine?.LineID; // Set selected line ID
+                                    var metrics = _repo.GetProductionMetrics(StartDate, EndDate, SelectedLineId);
+                                    ReportData.Clear();
+                                    foreach (var metric in metrics)
+                                    {
+                                        ReportData.Add(metric);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    MessageBox.Show($"Error generating report: {ex.Message}");
+                                }
+                            }
+                    
+                            // Export to JSON
+                            private void OnExportToJson(object parameter)
+                            {
+                                try
+                                {
+                                    var jsonSettings = new JsonSerializerSettings
+                                    {
+                                        ReferenceLoopHandling = ReferenceLoopHandling.Ignore // Ignore self-referencing loops
+                                    };
+                    
+                                    var jsonData = JsonConvert.SerializeObject(ReportData, Formatting.Indented, jsonSettings);
+                    
+                                    var saveFileDialog = new SaveFileDialog
+                                    {
+                                        Filter = "JSON files (*.json)|*.json",
+                                        Title = "Save as JSON"
+                                    };
+                    
+                                    if (saveFileDialog.ShowDialog() == true)
+                                    {
+                                        File.WriteAllText(saveFileDialog.FileName, jsonData);
+                                        MessageBox.Show("Data exported successfully to JSON.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    MessageBox.Show($"Error exporting to JSON: {ex.Message}");
+                                }
+                            }
+                    
+                    
+                           
+                            
+                        }
+                    }
+
 
 >>>>>>>>>>>>   db context <<<<<<<<<<<<<<<
                             using System.Data.Entity;
